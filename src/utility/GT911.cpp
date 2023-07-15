@@ -25,15 +25,15 @@ GT911::GT911() {
 }
 
 volatile uint8_t gt911_irq_trigger = 0;
-void ICACHE_RAM_ATTR ___GT911IRQ___() {
+
+void IRAM_ATTR ___GT911IRQ___() {
     noInterrupts();
     gt911_irq_trigger = 1;
     interrupts();
 }
 
-esp_err_t GT911::begin(uint8_t pin_sda, uint8_t pin_scl, uint8_t pin_int) {
-    log_d("GT911: Initialization");
-    pinMode(pin_int, INPUT);  // Startup sequence PIN part
+esp_err_t GT911::begin(uint8_t pin_sda, uint8_t pin_scl) {
+    log_d("GT911: I2C Initialization");
 
     Wire.begin((int)pin_sda, (int)pin_scl,
                (uint32_t)100000U);  // Note: SHT3x sensor built into M5Paper
@@ -48,21 +48,18 @@ esp_err_t GT911::begin(uint8_t pin_sda, uint8_t pin_scl, uint8_t pin_int) {
             return ESP_FAIL;
         }
         _iic_addr = 0x5D;
+        log_e("Wire.beginTransmission(0x5D)");
     }
+    log_d("Wire.endTransmission()=%d", Wire.endTransmission(true));
+    return ESP_OK;
+}
 
-    // if(read(0x8047) != _kGT911FW540960G2T1602729168[0])
-    // {
-    //     log_d("GT911: Update firmware");
-    //     write(0x8040, 0x02);
-    //     delay(100);
-    //     write(0x8047, _kGT911FW540960G2T1602729168, 186);
-    //     delay(50);
-    //     write(0x8040, 0x00);
-    //     delay(100);
-    // }
+esp_err_t GT911::createIRQ(uint8_t pin_int) {
+    log_d("GT911: IRQ Initialization");
+    pinMode(pin_int, INPUT);  // Startup sequence PIN part
 
+    delay(100);
     attachInterrupt(pin_int, ___GT911IRQ___, FALLING);
-
     return ESP_OK;
 }
 
