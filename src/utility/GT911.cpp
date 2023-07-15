@@ -32,8 +32,9 @@ void IRAM_ATTR ___GT911IRQ___() {
     interrupts();
 }
 
-esp_err_t GT911::begin(uint8_t pin_sda, uint8_t pin_scl) {
+esp_err_t GT911::begin(uint8_t pin_sda, uint8_t pin_scl, uint8_t pin_int) {
     log_d("GT911: I2C Initialization");
+    pinMode(pin_int, INPUT);  // Startup sequence PIN part
 
     Wire.begin((int)pin_sda, (int)pin_scl,
                (uint32_t)100000U);  // Note: SHT3x sensor built into M5Paper
@@ -44,13 +45,16 @@ esp_err_t GT911::begin(uint8_t pin_sda, uint8_t pin_scl) {
     if (Wire.endTransmission()) {
         Wire.beginTransmission(0x5D);
         if (Wire.endTransmission()) {
-            log_e("Touch screen IIC connection error");
+            // log_e("Touch screen IIC connection error");
             return ESP_FAIL;
         }
         _iic_addr = 0x5D;
-        log_e("Wire.beginTransmission(0x5D)");
+        // log_e("Wire.beginTransmission(0x5D)");
     }
-    log_d("Wire.endTransmission()=%d", Wire.endTransmission(true));
+    // log_d("Wire.endTransmission()=%d", Wire.endTransmission(true));
+
+    delay(100);
+    attachInterrupt(pin_int, ___GT911IRQ___, FALLING);
     return ESP_OK;
 }
 

@@ -23,14 +23,14 @@ void M5EPD::begin(bool touchEnable, bool SDEnable, bool SerialEnable,
     }
     _isInited = true;
 
-    if (TP.begin(21, 22) != ESP_OK) {
+    if (TP.begin(21, 22, 36) != ESP_OK) {
         log_e("Touch pad i2c begin failed.");
         delay(10);
     }
     delay(1000);
-    if (TP.createIRQ(36) != ESP_OK) {
-        log_e("Touch pad initialization failed.");
-    }
+    // if (TP.createIRQ(36) != ESP_OK) {
+    //     log_e("Touch pad initialization failed.");
+    // }
 
     // pinMode(M5EPD_MAIN_PWR_PIN, OUTPUT);
     // enableMainPower();
